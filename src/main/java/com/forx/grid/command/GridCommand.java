@@ -2,6 +2,7 @@ package com.forx.grid.command;
 
 import com.forx.grid.FGrid;
 import com.forx.grid.ModInfo;
+import com.forx.grid.config.ModConfig;
 import com.forx.grid.handlers.FileHandler;
 import com.forx.grid.helpers.ResourceHelper;
 import com.google.gson.JsonArray;
@@ -20,11 +21,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
@@ -116,7 +115,7 @@ public class GridCommand {
         for (int y = minY; y <= maxY; y++) {
             BufferedImage bufferedImage = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
             Graphics2D graphics2D = bufferedImage.createGraphics();
-            graphics2D.setColor(Color.BLACK);
+            graphics2D.setColor(Color.decode(ModConfig.gridColor));
 
             for (int x = minX; x <= maxX; x++) {
                 for (int z = minZ; z <= maxZ; z++) {
@@ -127,21 +126,28 @@ public class GridCommand {
                         TextureAtlasSprite textureAtlasSprite = Minecraft.getInstance().getBlockRendererDispatcher().getBlockModelShapes().getTexture(blockState);
                         ResourceLocation resourcelocation = ResourceHelper.getSpritePath(textureAtlasSprite.getName());
 
-                        try (IResource iresource = Minecraft.getInstance().getResourceManager().getResource(resourcelocation)) {
-                            NativeImage nativeimage = NativeImage.read(iresource.getInputStream());
-                            ByteArrayInputStream bis = new ByteArrayInputStream(nativeimage.getBytes());
-                            BufferedImage bImage2 = ImageIO.read(bis);
-                            graphics2D.drawImage(bImage2, 1 + (maxX - x) + (maxX - x) * 16, 1 + (maxZ - z) + (maxZ - z) * 16, null);
-                        } catch (RuntimeException runtimeexception) {
-                            FGrid.LOGGER.error("Unable to parse metadata from {}", resourcelocation, runtimeexception);
-                        } catch (IOException ioexception) {
-                            FGrid.LOGGER.error("Using missing texture, unable to load {}", resourcelocation, ioexception);
+                        if (!resourcelocation.toString().contains("missingno")) {
+                            try (IResource iresource = Minecraft.getInstance().getResourceManager().getResource(resourcelocation)) {
+                                NativeImage nativeimage = NativeImage.read(iresource.getInputStream());
+                                ByteArrayInputStream bis = new ByteArrayInputStream(nativeimage.getBytes());
+                                BufferedImage bImage2 = ImageIO.read(bis);
+                                graphics2D.drawImage(bImage2, 1 + (maxX - x) + (maxX - x) * 16, 1 + (maxZ - z) + (maxZ - z) * 16, null);
+                            } catch (RuntimeException runtimeexception) {
+                                FGrid.LOGGER.error("Unable to parse metadata from {}", resourcelocation, runtimeexception);
+                            } catch (IOException ioexception) {
+                                FGrid.LOGGER.error("Using missing texture, unable to load {}", resourcelocation, ioexception);
+                            }
                         }
 
-                        graphics2D.drawLine((maxX - x) + (maxX - x) * 16, (maxZ - z) + (maxZ - z) * 16, 17 + (maxX - x) + (maxX - x) * 16, (maxZ - z) + (maxZ - z) * 16);
-                        graphics2D.drawLine((maxX - x) + (maxX - x) * 16, (maxZ - z) + (maxZ - z) * 16, (maxX - x) + (maxX - x) * 16, 17 + (maxZ - z) + (maxZ - z) * 16);
-                        graphics2D.drawLine(17 + (maxX - x) + (maxX - x) * 16, (maxZ - z) + (maxZ - z) * 16, 17 + (maxX - x) + (maxX - x) * 16, 17 + (maxZ - z) + (maxZ - z) * 16);
-                        graphics2D.drawLine((maxX - x) + (maxX - x) * 16, 17 + (maxZ - z) + (maxZ - z) * 16, 17 + (maxX - x) + (maxX - x) * 16, 17 + (maxZ - z) + (maxZ - z) * 16);
+                        int x1 = (maxX - x) + (maxX - x) * 16;
+                        int y1 = (maxZ - z) + (maxZ - z) * 16;
+                        int x2 = 17 + (maxX - x) + (maxX - x) * 16;
+                        int y2 = 17 + (maxZ - z) + (maxZ - z) * 16;
+
+                        graphics2D.drawLine(x1, y1, x2, y1);
+                        graphics2D.drawLine(x1, y1, x1, y2);
+                        graphics2D.drawLine(x2, y1, x2, y2);
+                        graphics2D.drawLine(x1, y2, x2, y2);
                     }
                 }
             }

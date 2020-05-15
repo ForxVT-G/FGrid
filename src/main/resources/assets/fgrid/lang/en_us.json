@@ -1,3 +1,4 @@
 {
-  "fgrid.command.success": "Grid and layers saved"
+  "fgrid.command.success": "Grid and layers saved",
+  "fgrid.config.grid.color": "Define the grid's color"
 }
